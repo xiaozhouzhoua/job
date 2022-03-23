@@ -21,6 +21,7 @@ public class MyLock implements Lock {
                 }
             }
         }
+        i = 1;
     }
 
     @Override
