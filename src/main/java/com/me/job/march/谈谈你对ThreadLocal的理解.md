@@ -1,6 +1,9 @@
 ### **谈谈你对ThreadLocal的理解**
 ThreadLocal介绍
-从Java官方文档中的描述：ThreadLocal类用来提供线程内部的局部变量。这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量。ThreadLocal实例通常来说都是private static类型的，用于关联线程和线程上下文。
+
+从Java官方文档中的描述：ThreadLocal类用来提供线程内部的局部变量。这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量。
+
+ThreadLocal实例通常来说都是private static类型的，用于关联线程和线程上下文。
 
 我们可以得知ThreadLocal的作用是：提供线程内的局部变量，不同的线程之间不会相互干扰，这种变量在线程的生命周期内起作用，减少同一个线程内多个函数或组件之间一些公共变量传递的复杂度。
 
@@ -51,6 +54,7 @@ public void remove()|移除当前线程绑定的局部变量
 这个时候就可以通过ThreadLocal和当前线程进行绑定，来降低代码之间的耦合
 
 ![transaction](https://gitee.com/zhouguangping/image/raw/master/markdown/threadlocal.png)
+
 **使用ThreadLocal解决**
 
 针对上面出现的情况，我们需要对原来的JDBC连接池对象进行更改
@@ -86,6 +90,7 @@ JDK8中ThreadLocal的设计是：每个Thread维护一个ThreadLocalMap，这个
 * 对于不同的线程，每次获取副本值时，别的线程并不能获取到当前线程的副本值，形成了副本的隔离，互不干扰。
 
 ![diff](https://gitee.com/zhouguangping/image/raw/master/markdown/threadLocaldiff.png)
+
 从上面变成JDK8的设计有什么好处？
 
 * 每个Map存储的Entry数量变少，因为原来的Entry数量是由Thread决定，而现在是由ThreadLocal决定的，真实开发中，Thread的数量远远大于ThreadLocal的数量
@@ -137,7 +142,8 @@ object value；Entry（ThreadLocal<？>k，object v）{
     value = v;
 }}
 ```
-在ThreadLocalMap中，也是用Entry来保存K-V结构数据的。不过Entry中的key只能是ThreadLocal对象，这点在构造方法中已经限定死了。另外，Entry继承WeakReference，也就是key（ThreadLocal）是弱引用，其目的是将ThreadLocal对象的生命周期和线程生命周期解绑。
+在ThreadLocalMap中，也是用Entry来保存K-V结构数据的。不过Entry中的key只能是ThreadLocal对象，这点在构造方法中已经限定死了。
+另外，Entry继承WeakReference，也就是key（ThreadLocal）是弱引用，其目的是将ThreadLocal对象的生命周期和线程生命周期解绑。
 
 **弱引用和内存泄漏**
 
@@ -220,14 +226,14 @@ Spring框架里面就是用的ThreadLocal来实现这种隔离，主要是在Tra
 ```java
 private static final Log logger = LogFactory.getLog(TransactionSynchronizationManager.class);
 
-    private static final ThreadLocal<Map<Object, Object>> resources =
-            new NamedThreadLocal<>("Transactional resources");
+private static final ThreadLocal<Map<Object, Object>> resources =
+        new NamedThreadLocal<>("Transactional resources");
 
-    private static final ThreadLocal<Set<TransactionSynchronization>> synchronizations =
-            new NamedThreadLocal<>("Transaction synchronizations");
+private static final ThreadLocal<Set<TransactionSynchronization>> synchronizations =
+        new NamedThreadLocal<>("Transaction synchronizations");
 
-    private static final ThreadLocal<String> currentTransactionName =
-            new NamedThreadLocal<>("Current transaction name");
+private static final ThreadLocal<String> currentTransactionName =
+        new NamedThreadLocal<>("Current transaction name");
 ```
 Spring的事务主要是ThreadLocal和AOP去做实现的，我这里提一下，大家知道每个线程自己的链接是靠ThreadLocal保存的就好了。
 
